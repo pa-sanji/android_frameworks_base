@@ -16,12 +16,13 @@
 
 package com.android.internal.util.custom;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import android.app.AlertDialog;
 import android.app.IActivityManager;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -34,6 +35,7 @@ import java.lang.ref.WeakReference;
 public class SystemRebootUtils {
 
     private static final int REBOOT_TIMEOUT = 1000;
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void showSystemRebootDialog(Context context) {
         new AlertDialog.Builder(context)
@@ -48,33 +50,36 @@ public class SystemRebootUtils {
     }
 
     public static void rebootSystem(Context context) {
-        new RebootSystemTask(context).execute();
-    }
-
-    private static class RebootSystemTask extends AsyncTask<Void, Void, Void> {
-        private final WeakReference<Context> mContext;
-
-        RebootSystemTask(Context context) {
-            mContext = new WeakReference<>(context);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
+        executor.submit(() -> {
             try {
                 IStatusBarService mBarService = IStatusBarService.Stub.asInterface(
                         ServiceManager.getService(Context.STATUS_BAR_SERVICE));
                 if (mBarService != null) {
-                    try {
-                        Thread.sleep(REBOOT_TIMEOUT);
-                        mBarService.reboot(false);
-                    } catch (RemoteException | InterruptedException e) {
-                        e.printStackTrace();
+                    Thread.sleep(REBOOT_TIMEOUT);
+                    mBarService.reboot(false);
+                }
+            } catch (RemoteException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public static void restartProcess(Context context, String processName) {
+        executor.submit(() -> {
+            try {
+                ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+                if (am != null) {
+                    IActivityManager ams = ActivityManager.getService();
+                    for (ActivityManager.RunningAppProcessInfo app : am.getRunningAppProcesses()) {
+                        if (app.processName.contains(processName)) {
+                            ams.killApplicationProcess(app.processName, app.uid);
+                            break;
+                        }
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return null;
-        }
+        });
     }
 }
