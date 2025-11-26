@@ -115,6 +115,6 @@
     <java-symbol type="string" name="system_reboot_message" />
 
     <!-- Keybox -->
-    <java-symbol type="array" name="config_certified_Keybox" />
+    <java-symbol type="array" name="config_k_b" />
 
 </resources>

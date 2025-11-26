@@ -32,7 +32,7 @@
     <string name="reboot_message">Rebooting system</string>
 
     <!-- Keybox configuration for device certification -->
-    <string-array name="config_certified_Keybox" translatable="false">
+    <string-array name="config_k_b" translatable="false">
       <!--
         Keybox entries for EC and RSA keys and certificates.
         These should be populated with valid data for device certification.
