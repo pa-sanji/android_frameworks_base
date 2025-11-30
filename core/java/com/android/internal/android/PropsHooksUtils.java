@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2020 The Pixel Experience Project
  *               2025 the AxionAOSP Project
@@ -191,29 +190,67 @@ public class PropsHooksUtils {
         if (pubgPropsMap.containsKey(packageName)) {
         }
 
+        /* Game spoofing block with success/fail log */
         if (shoudlSpoofGames()) {
             Map<String, Object> props = packagePropsMap.get(packageName);
             if (props != null) {
+                boolean success = true;
                 for (Map.Entry<String, Object> prop : props.entrySet()) {
-                    setPropValue(packageName, prop.getKey(), prop.getValue());
+                    try {
+                        setPropValue(packageName, prop.getKey(), prop.getValue());
+                    } catch (Exception e) {
+                        success = false;
+                        Log.e(TAG, "Game spoofing failed at prop " + prop.getKey()
+                                + " for " + packageName, e);
+                    }
+                }
+                if (success) {
+                    Log.i(TAG, "Game spoofing SUCCESS for " + packageName);
+                } else {
+                    Log.e(TAG, "Game spoofing FAILED for " + packageName);
                 }
             }
         }
 
+        /* Photos spoofing block with success/fail log */
         sIsPhotos = packageName.equals("com.google.android.apps.photos");
         if (shouldSpoofPhotos()) {
+            boolean successPhotos = true;
             for (Map.Entry<String, Object> entry : propsPixelXL.entrySet()) {
-                setPropValue(packageName, entry.getKey(), entry.getValue());
+                try {
+                    setPropValue(packageName, entry.getKey(), entry.getValue());
+                } catch (Exception e) {
+                    successPhotos = false;
+                    Log.e(TAG, "Photos spoofing failed at prop " + entry.getKey(), e);
+                }
+            }
+            if (successPhotos) {
+                Log.i(TAG, "Photos spoofing SUCCESS (Pixel XL)");
+            } else {
+                Log.e(TAG, "Photos spoofing FAILED");
             }
         }
 
+        /* Settings Intelligence spoofing with logs */
         if (packageName.equals("com.google.android.settings.intelligence")) {
-            setPropValue(packageName, "FINGERPRINT", "eng.nobody." +
-                    new SimpleDateFormat("yyyyMMdd.HHmmss").format(new Date()));
+            try {
+                String fp = "eng.nobody." +
+                        new SimpleDateFormat("yyyyMMdd.HHmmss").format(new Date());
+                setPropValue(packageName, "FINGERPRINT", fp);
+                Log.i(TAG, "SettingsIntelligence spoof SUCCESS");
+            } catch (Exception e) {
+                Log.e(TAG, "SettingsIntelligence spoof FAILED", e);
+            }
         }
 
+        /* GMS/Finsky spoof block with success/fail log */
         if (shouldSpoofGMS(packageName, processName)) {
-            spoofBuildGms(context, packageName);
+            try {
+                spoofBuildGms(context, packageName);
+                Log.i(TAG, "GMS/Finsky spoofing SUCCESS for " + packageName);
+            } catch (Exception e) {
+                Log.e(TAG, "GMS/Finsky spoofing FAILED for " + packageName, e);
+            }
         }
     }
 
