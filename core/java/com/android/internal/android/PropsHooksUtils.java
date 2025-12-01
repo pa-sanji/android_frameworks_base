@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2020 The Pixel Experience Project
  *               2025 the AxionAOSP Project
@@ -197,67 +198,29 @@ public class PropsHooksUtils {
             if (propsToApply != null) packagePropsMap.put(packageName, propsToApply);
         }
 
-        /* Game spoofing block with success/fail log */
         if (shoudlSpoofGames()) {
             Map<String, Object> props = packagePropsMap.get(packageName);
             if (props != null) {
-                boolean success = true;
                 for (Map.Entry<String, Object> prop : props.entrySet()) {
-                    try {
-                        setPropValue(packageName, prop.getKey(), prop.getValue());
-                    } catch (Exception e) {
-                        success = false;
-                        Log.e(TAG, "Game spoofing failed at prop " + prop.getKey()
-                                + " for " + packageName, e);
-                    }
-                }
-                if (success) {
-                    Log.i(TAG, "Game spoofing SUCCESS for " + packageName);
-                } else {
-                    Log.e(TAG, "Game spoofing FAILED for " + packageName);
+                    setPropValue(packageName, prop.getKey(), prop.getValue());
                 }
             }
         }
 
-        /* Photos spoofing block with success/fail log */
         sIsPhotos = packageName.equals("com.google.android.apps.photos");
         if (shouldSpoofPhotos()) {
-            boolean successPhotos = true;
             for (Map.Entry<String, Object> entry : propsPixelXL.entrySet()) {
-                try {
-                    setPropValue(packageName, entry.getKey(), entry.getValue());
-                } catch (Exception e) {
-                    successPhotos = false;
-                    Log.e(TAG, "Photos spoofing failed at prop " + entry.getKey(), e);
-                }
-            }
-            if (successPhotos) {
-                Log.i(TAG, "Photos spoofing SUCCESS (Pixel XL)");
-            } else {
-                Log.e(TAG, "Photos spoofing FAILED");
+                setPropValue(packageName, entry.getKey(), entry.getValue());
             }
         }
 
-        /* Settings Intelligence spoofing with logs */
         if (packageName.equals("com.google.android.settings.intelligence")) {
-            try {
-                String fp = "eng.nobody." +
-                        new SimpleDateFormat("yyyyMMdd.HHmmss").format(new Date());
-                setPropValue(packageName, "FINGERPRINT", fp);
-                Log.i(TAG, "SettingsIntelligence spoof SUCCESS");
-            } catch (Exception e) {
-                Log.e(TAG, "SettingsIntelligence spoof FAILED", e);
-            }
+            setPropValue(packageName, "FINGERPRINT", "eng.nobody." +
+                    new SimpleDateFormat("yyyyMMdd.HHmmss").format(new Date()));
         }
 
-        /* GMS/Finsky spoof block with success/fail log */
         if (shouldSpoofGMS(packageName, processName)) {
-            try {
-                spoofBuildGms(context, packageName);
-                Log.i(TAG, "GMS/Finsky spoofing SUCCESS for " + packageName);
-            } catch (Exception e) {
-                Log.e(TAG, "GMS/Finsky spoofing FAILED for " + packageName, e);
-            }
+            spoofBuildGms(context, packageName);
         }
     }
 
