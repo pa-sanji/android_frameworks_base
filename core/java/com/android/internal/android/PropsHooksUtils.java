@@ -155,6 +155,7 @@ public class PropsHooksUtils {
         for (String pkg : pubgPackages) {
             ArrayMap<String, Map<String, Object>> props = new ArrayMap<>();
             props.put("phone", propsS24Ultra);
+            props.put("tablet", propsS9Tab);
             pubgPropsMap.put(pkg, props);
         }
 
@@ -187,7 +188,13 @@ public class PropsHooksUtils {
         final String processName = Application.getProcessName();
         if (TextUtils.isEmpty(processName)) return;
 
+        boolean isTablet = isLargeScreen(context);
+
         if (pubgPropsMap.containsKey(packageName)) {
+            Map<String, Object> propsToApply = isTablet
+                    ? pubgPropsMap.get(packageName).get("tablet")
+                    : pubgPropsMap.get(packageName).get("phone");
+            if (propsToApply != null) packagePropsMap.put(packageName, propsToApply);
         }
 
         /* Game spoofing block with success/fail log */
@@ -334,5 +341,17 @@ public class PropsHooksUtils {
 
     private static boolean isPixelDevice() {
         return SystemProperties.get("ro.soc.manufacturer", "").equalsIgnoreCase("google");
+    }
+
+    private static boolean isLargeScreen(Context context) {
+        WindowManager windowManager = context.getSystemService(WindowManager.class);
+        final Rect bounds = windowManager.getMaximumWindowMetrics().getBounds();
+        float smallestWidth = dpiFromPx(Math.min(bounds.width(), bounds.height()),
+                context.getResources().getConfiguration().densityDpi);
+        return smallestWidth >= 600;
+    }
+
+    private static float dpiFromPx(float size, int densityDpi) {
+        return size / ((float)densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
 }
